@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>The Wedding of Asfiyah & Hasan</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Icons (Phosphor Icons for elegant minimalist look) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="bg-brand-beige text-brand-dark antialiased min-h-screen selection:bg-brand-brown selection:text-white pb-20">
+    
+    <!-- ==================== GALLERY VIEW ==================== -->
+    <div id="view-gallery" class="w-full max-w-md mx-auto min-h-screen relative flex flex-col overflow-hidden">
+      <!-- Floral Top Left -->
+      <div class="absolute -top-10 -left-10 w-48 h-48 opacity-30 pointer-events-none -z-10 bg-[url('https://www.svgrepo.com/show/305282/floral-design-vintage.svg')] bg-no-repeat bg-contain transform -scale-x-100 rotate-12"></div>
+      
+      <!-- Floral Top Right -->
+      <div class="absolute -top-10 -right-10 w-40 h-40 opacity-25 pointer-events-none -z-10 bg-[url('https://www.svgrepo.com/show/305282/floral-design-vintage.svg')] bg-no-repeat bg-contain rotate-[110deg]"></div>
+      
+      <!-- Floral Bottom Right (fixed for scrolling) -->
+      <div class="fixed bottom-0 -right-10 w-56 h-56 opacity-20 pointer-events-none -z-10 bg-[url('https://www.svgrepo.com/show/305282/floral-design-vintage.svg')] bg-no-repeat bg-contain transform -scale-x-100 rotate-[220deg]"></div>
+      
+      <!-- Header -->
+      <header class="text-center pt-12 pb-6 px-4">
+        <p class="text-sm uppercase tracking-widest text-brand-brown font-medium mb-2">The Wedding Of</p>
+        <h1 class="font-serif text-4xl mb-4 leading-tight text-brand-dark">Asfiyah & Hasan</h1>
+        <div class="w-16 h-[1px] bg-brand-accent mx-auto mb-4"></div>
+        <p class="text-sm opacity-80 max-w-xs mx-auto">Share your special moments with us on our beautiful day.</p>
+      </header>
+
+      <!-- Main Content / Gallery -->
+      <main class="flex-1 px-4 relative z-10 pb-24">
+        <!-- Empty State -->
+        <div id="gallery-empty" class="hidden flex-col items-center justify-center text-center h-48 mt-10 p-6 rounded-2xl bg-white/50 border border-brand-brown/10 backdrop-blur-sm">
+          <i class="ph ph-camera-slash text-4xl text-brand-brown/40 mb-3"></i>
+          <p class="text-sm text-brand-dark/70">No photo was added yet.</p>
+          <p class="text-sm font-medium mt-1">Tap the <strong class="text-brand-brown">(+)</strong> button to post your moment!</p>
+        </div>
+
+        <!-- Masonry Grid -->
+        <div id="gallery-grid" class="masonry-grid hidden">
+          <!-- Populated by JS -->
+        </div>
+      </main>
+
+      <!-- Floating Action Button -->
+      <button id="btn-open-camera" class="fixed bottom-6 left-1/2 -translate-x-1/2 w-16 h-16 bg-brand-brown text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(141,110,99,0.4)] hover:bg-[#795c52] hover:scale-105 active:scale-95 transition-all z-50">
+        <i class="ph-bold ph-plus text-2xl"></i>
+      </button>
+    </div>
+
+    <!-- ==================== CAMERA VIEW ==================== -->
+    <div id="view-camera" class="hidden fixed inset-0 z-50 bg-black flex-col items-center justify-center">
+      <!-- Camera Toolbar -->
+      <div class="absolute top-0 inset-x-0 h-16 flex items-center justify-between px-4 z-20 bg-gradient-to-b from-black/60 to-transparent">
+        <button id="btn-close-camera" class="text-white p-2 rounded-full hover:bg-white/20 active:bg-white/30 transition-colors">
+          <i class="ph ph-x text-2xl"></i>
+        </button>
+      </div>
+
+      <!-- Video Element -->
+      <div class="relative w-full h-full max-w-md mx-auto flex items-center justify-center overflow-hidden bg-black">
+        <!-- The video tag uses object-fit cover to fill the container -->
+        <video id="video" autoplay playsinline class="absolute inset-0 w-full h-full object-cover transform scale-x-[-1]"></video>
+        
+        <!-- Optional: Frame Guide overlay to help guests align their face -->
+        <div class="absolute inset-4 border-2 border-white/30 rounded-3xl pointer-events-none flex flex-col items-center justify-between py-12">
+          <div class="w-32 h-32 border border-white/50 rounded-full border-dashed"></div>
+        </div>
+      </div>
+
+      <!-- Camera Controls -->
+      <div class="absolute bottom-0 inset-x-0 h-32 flex items-center justify-center pb-8 z-20 bg-gradient-to-t from-black/80 to-transparent">
+        <button id="btn-capture" class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center border-4 border-white/40 hover:bg-white/30 active:scale-95 transition-all">
+          <div class="w-14 h-14 bg-white rounded-full shadow-lg"></div>
+        </button>
+      </div>
+      
+      <p id="camera-error" class="hidden absolute top-1/2 left-4 right-4 text-center text-white bg-red-500/80 p-4 rounded-xl backdrop-blur-sm z-50 text-sm">
+        Camera access denied. Please allow camera permissions to continue.
+      </p>
+    </div>
+
+    <!-- ==================== PREVIEW & FORM VIEW ==================== -->
+    <div id="view-preview" class="hidden fixed inset-0 z-50 bg-brand-beige overflow-y-auto pb-8">
+      <div class="w-full max-w-md mx-auto min-h-screen flex flex-col relative">
+        <header class="h-14 flex items-center justify-between px-4 sticky top-0 bg-brand-beige/90 backdrop-blur-md z-20 border-b border-brand-brown/10">
+          <button id="btn-retake" class="flex items-center gap-1 text-sm text-brand-brown font-medium hover:opacity-80 transition-opacity">
+            <i class="ph ph-caret-left text-lg"></i> Retake
+          </button>
+          <h2 class="font-serif font-semibold">Post Moment</h2>
+          <div class="w-16"></div> <!-- Spacer for flex balance -->
+        </header>
+
+        <!-- Canvas Container (Invisible canvas used for processing, image used for display) -->
+        <div class="p-4 flex justify-center">
+          <canvas id="photo-canvas" class="hidden"></canvas>
+          <div class="relative w-full max-w-xs aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+            <img id="preview-image" class="w-full h-full object-cover" src="" alt="Preview" />
+          </div>
+        </div>
+
+        <!-- Form -->
+        <form id="post-form" class="px-6 flex-1 flex flex-col gap-4 mt-2">
+          <div>
+            <label for="guest-name" class="block text-xs font-semibold text-brand-dark/70 mb-1 uppercase tracking-wide">Your Name</label>
+            <input type="text" id="guest-name" required placeholder="e.g. Budi & Family" class="w-full bg-white border border-brand-brown/20 rounded-xl px-4 py-3 outline-none focus:border-brand-brown focus:ring-2 focus:ring-brand-brown/20 transition-all text-sm">
+          </div>
+          
+          <div>
+            <label for="guest-wish" class="block text-xs font-semibold text-brand-dark/70 mb-1 uppercase tracking-wide">Send a Wish</label>
+            <textarea id="guest-wish" required rows="3" placeholder="Write your prayers and wishes for the couple..." class="w-full bg-white border border-brand-brown/20 rounded-xl px-4 py-3 outline-none focus:border-brand-brown focus:ring-2 focus:ring-brand-brown/20 transition-all text-sm resize-none"></textarea>
+          </div>
+
+          <button type="submit" id="btn-submit" class="mt-4 w-full bg-brand-brown text-white rounded-xl py-3.5 font-medium flex items-center justify-center gap-2 hover:bg-[#795c52] active:scale-[0.98] transition-all shadow-md">
+            <span id="submit-text">Post to Gallery</span>
+            <div id="submit-loader" class="loader hidden"></div>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== SHARE / SUCCESS VIEW ==================== -->
+    <div id="view-share" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center transform scale-95 opacity-0 transition-all duration-300" id="share-modal-content">
+        
+        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+          <i class="ph-bold ph-check text-3xl"></i>
+        </div>
+        
+        <h3 class="font-serif text-2xl mb-2 text-brand-dark">Moment Captured!</h3>
+        <p class="text-sm text-brand-dark/70 mb-6">Your photo and wishes have been added to the gallery.</p>
+        
+        <img id="share-image-preview" src="" class="w-32 aspect-[3/4] object-cover rounded-xl shadow-md border-2 border-white mb-6" alt="Final Photo" />
+
+        <div class="w-full flex flex-col gap-3">
+          <button id="btn-share" class="w-full bg-brand-brown text-white rounded-xl py-3 font-medium flex items-center justify-center gap-2 hover:bg-[#795c52] active:scale-95 transition-all">
+            <i class="ph ph-share-network text-lg"></i> Share the Moment
+          </button>
+          
+          <button id="btn-download" class="w-full bg-brand-beige text-brand-brown border border-brand-brown/30 rounded-xl py-3 font-medium flex items-center justify-center gap-2 hover:bg-brand-brown/5 active:scale-95 transition-all">
+            <i class="ph ph-download-simple text-lg"></i> Download to Device
+          </button>
+          
+          <button id="btn-back-gallery" class="w-full mt-2 text-sm text-brand-dark/60 font-medium hover:text-brand-dark py-2">
+            Back to Gallery
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
