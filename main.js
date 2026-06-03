@@ -96,7 +96,7 @@ function renderGallery() {
       item.className = 'masonry-item bg-white p-3 rounded-xl shadow-sm border border-brand-brown/10 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-pointer';
 
       item.innerHTML = `
-        <img src="${photo.imageUrl}" alt="Photo by ${photo.name}" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />
+        ${photo.imageUrl ? `<img src="${photo.imageUrl}" alt="Photo by ${photo.name}" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />` : ''}
         <div>
           <h3 class="font-serif font-bold text-sm text-brand-dark">${photo.name}</h3>
           <p class="text-xs text-brand-dark/70 mt-1 italic">"${photo.wish}"</p>
@@ -282,6 +282,39 @@ function drawFrameOverlay(ctx) {
 // GANTI DENGAN WEB APP URL ANDA DARI LANGKAH 3
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9vd37GljaviHcVdhkRFhjnqEEHmfEr4u0_IhardRG9DDS2uAeUzi7-e-sVKbuP8dryw/exec";
 
+// Fetch existing data from Google Sheets
+async function fetchPhotos() {
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL);
+    const result = await response.json();
+    
+    if (result.status === "success" && result.data) {
+      // Perbarui state lokal dengan data dari Spreadsheet
+      photos = result.data.map(item => {
+        let finalUrl = item.imageUrl || '';
+        // Ubah link view Google Drive menjadi link gambar langsung agar bisa dirender di tag <img>
+        if (finalUrl.includes('drive.google.com/file/d/')) {
+          const fileId = finalUrl.match(/\/d\/(.+?)\//);
+          if (fileId && fileId[1]) {
+            finalUrl = `https://drive.google.com/uc?export=view&id=${fileId[1]}`;
+          }
+        }
+
+        return {
+          id: item.id,
+          name: item.name,
+          wish: item.wish,
+          imageUrl: finalUrl,
+          date: new Date(item.date)
+        };
+      });
+      renderGallery();
+    }
+  } catch (error) {
+    console.error("Error fetching photos:", error);
+  }
+}
+
 async function submitPostMock(name, wish, base64Image) {
   try {
     const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -436,3 +469,4 @@ function triggerDownload() {
 
 // --- Init ---
 renderGallery();
+fetchPhotos(); // Fetch from Google Sheets on load
