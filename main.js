@@ -84,17 +84,17 @@ function renderGallery() {
     galleryEmpty.classList.add('hidden');
     galleryEmpty.classList.remove('flex');
     galleryGrid.classList.remove('hidden');
-    
+
     // Clear and render
     galleryGrid.innerHTML = '';
-    
+
     // Sort newest first
     const sortedPhotos = [...photos].sort((a, b) => b.date - a.date);
-    
+
     sortedPhotos.forEach(photo => {
       const item = document.createElement('div');
       item.className = 'masonry-item bg-white p-3 rounded-xl shadow-sm border border-brand-brown/10 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-pointer';
-      
+
       item.innerHTML = `
         <img src="${photo.imageUrl}" alt="Photo by ${photo.name}" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />
         <div>
@@ -102,7 +102,7 @@ function renderGallery() {
           <p class="text-xs text-brand-dark/70 mt-1 italic">"${photo.wish}"</p>
         </div>
       `;
-      
+
       // Could add fullscreen view on click here
       galleryGrid.appendChild(item);
     });
@@ -121,7 +121,7 @@ async function startCamera() {
       },
       audio: false
     });
-    
+
     currentStream = stream;
     videoEl.srcObject = stream;
     // Mirror front camera video via CSS class 'transform scale-x-[-1]' handled in HTML
@@ -150,7 +150,7 @@ function captureAndDrawFrame() {
   // 1. Calculate Crop to fit 3:4 aspect ratio
   const videoAspect = videoEl.videoWidth / videoEl.videoHeight;
   const canvasAspect = CANVAS_WIDTH / CANVAS_HEIGHT;
-  
+
   let drawWidth, drawHeight, startX, startY;
 
   if (videoAspect > canvasAspect) {
@@ -180,11 +180,11 @@ function captureAndDrawFrame() {
 
   // 4. Export to Base64
   finalImageBase64 = photoCanvas.toDataURL('image/jpeg', 0.85);
-  
+
   // 5. Update Preview UI
   previewImage.src = finalImageBase64;
   shareImagePreview.src = finalImageBase64;
-  
+
   // Transition View
   stopCamera();
   showView('preview');
@@ -192,12 +192,12 @@ function captureAndDrawFrame() {
 
 function drawFrameOverlay(ctx) {
   const padding = 60;
-  
+
   // Draw Outer Border
   ctx.strokeStyle = "#FDFBF7";
   ctx.lineWidth = 40;
   ctx.strokeRect(20, 20, CANVAS_WIDTH - 40, CANVAS_HEIGHT - 40);
-  
+
   // Draw Inner Border
   ctx.strokeStyle = "#8D6E63"; // brand-brown
   ctx.lineWidth = 6;
@@ -212,7 +212,7 @@ function drawFrameOverlay(ctx) {
   const cornerSize = 120;
   ctx.strokeStyle = "#8D6E63";
   ctx.lineWidth = 4;
-  
+
   function drawOrnateCorner(cx, cy, mx, my) {
     ctx.beginPath();
     // main L shape
@@ -220,7 +220,7 @@ function drawFrameOverlay(ctx) {
     ctx.lineTo(cx, cy);
     ctx.lineTo(cx, cy + my * cornerSize);
     ctx.stroke();
-    
+
     // Diagonal
     ctx.beginPath();
     ctx.moveTo(cx + mx * 40, cy);
@@ -232,7 +232,7 @@ function drawFrameOverlay(ctx) {
     ctx.arc(cx, cy, 10, 0, Math.PI * 2);
     ctx.fillStyle = "#8D6E63";
     ctx.fill();
-    
+
     // Small dots
     ctx.beginPath();
     ctx.arc(cx + mx * cornerSize, cy, 4, 0, Math.PI * 2);
@@ -250,7 +250,7 @@ function drawFrameOverlay(ctx) {
   const bannerHeight = 250;
   ctx.fillStyle = "#FDFBF7"; // Beige
   ctx.fillRect(0, CANVAS_HEIGHT - bannerHeight, CANVAS_WIDTH, bannerHeight);
-  
+
   ctx.beginPath();
   ctx.moveTo(0, CANVAS_HEIGHT - bannerHeight);
   ctx.lineTo(CANVAS_WIDTH, CANVAS_HEIGHT - bannerHeight);
@@ -261,16 +261,16 @@ function drawFrameOverlay(ctx) {
   // Draw Text
   ctx.fillStyle = "#3E2723"; // Dark
   ctx.textAlign = "center";
-  
+
   // Subtitle
   ctx.font = "300 36px Inter";
   ctx.fillText("THE WEDDING OF", CANVAS_WIDTH / 2, CANVAS_HEIGHT - 170);
-  
+
   // Names
   ctx.fillStyle = "#4A0E0E"; // Dark reddish color
   ctx.font = "italic 700 80px 'Playfair Display'";
   ctx.fillText("Asfiyah & Hasan", CANVAS_WIDTH / 2, CANVAS_HEIGHT - 80);
-  
+
   // Date
   ctx.font = "400 30px Inter";
   ctx.fillStyle = "#8D6E63";
@@ -278,21 +278,50 @@ function drawFrameOverlay(ctx) {
 }
 
 // --- Mock API API Logic ---
-function submitPostMock(name, wish, base64Image) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newPost = {
-        id: Date.now().toString(),
-        name,
-        wish,
-        imageUrl: base64Image,
-        date: new Date()
-      };
-      photos.push(newPost);
-      resolve(newPost);
-    }, 1500); // Simulate network delay
-  });
+// --- API Logic ---
+// GANTI DENGAN WEB APP URL ANDA DARI LANGKAH 3
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9vd37GljaviHcVdhkRFhjnqEEHmfEr4u0_IhardRG9DDS2uAeUzi7-e-sVKbuP8dryw/exec";
+
+async function submitPostMock(name, wish, base64Image) {
+  try {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      // Jangan gunakan mode 'no-cors' agar kita bisa membaca response balasan
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      // Bungkus data menjadi JSON string
+      body: JSON.stringify({
+        name: name,
+        wish: wish,
+        image: base64Image
+      })
+    });
+
+    const result = await response.json();
+
+    if (result.status === "error") {
+      throw new Error(result.message);
+    }
+
+    // Tambahkan data ke galeri secara lokal (agar langsung terlihat tanpa reload)
+    const newPost = {
+      id: Date.now().toString(),
+      name,
+      wish,
+      imageUrl: base64Image, // Tetap gunakan base64 lokal untuk render agar cepat
+      date: new Date()
+    };
+    photos.push(newPost);
+
+    return newPost;
+
+  } catch (error) {
+    console.error("Error saving data:", error);
+    throw error;
+  }
 }
+
 
 // --- Event Listeners ---
 
@@ -322,10 +351,10 @@ btnRetake.addEventListener('click', () => {
 
 postForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   const name = inputName.value.trim();
   const wish = inputWish.value.trim();
-  
+
   if (!name || !wish || !finalImageBase64) return;
 
   // UI Loading state
@@ -335,7 +364,7 @@ postForm.addEventListener('submit', async (e) => {
 
   try {
     await submitPostMock(name, wish, finalImageBase64);
-    
+
     // Success, show share view
     showView('share');
     renderGallery(); // Update gallery in background
@@ -354,7 +383,7 @@ btnBackGallery.addEventListener('click', () => {
   // Hide modal animation
   shareModalContent.classList.remove('scale-100', 'opacity-100');
   shareModalContent.classList.add('scale-95', 'opacity-0');
-  
+
   setTimeout(() => {
     finalImageBase64 = null;
     showView('gallery');
@@ -363,7 +392,7 @@ btnBackGallery.addEventListener('click', () => {
 
 btnShare.addEventListener('click', async () => {
   if (!finalImageBase64) return;
-  
+
   try {
     // Convert base64 to file
     const res = await fetch(finalImageBase64);
