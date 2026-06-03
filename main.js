@@ -96,7 +96,7 @@ function renderGallery() {
       item.className = 'masonry-item bg-white p-3 rounded-xl shadow-sm border border-brand-brown/10 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-pointer';
 
       item.innerHTML = `
-        ${photo.imageUrl ? `<img src="${photo.imageUrl}" alt="Photo by ${photo.name}" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />` : ''}
+        ${photo.imageUrl ? `<img src="${photo.imageUrl}" alt="Photo by ${photo.name}" onerror="this.style.display='none'" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />` : ''}
         <div>
           <h3 class="font-serif font-bold text-sm text-brand-dark">${photo.name}</h3>
           <p class="text-xs text-brand-dark/70 mt-1 italic">"${photo.wish}"</p>
@@ -292,11 +292,12 @@ async function fetchPhotos() {
       // Perbarui state lokal dengan data dari Spreadsheet
       photos = result.data.map(item => {
         let finalUrl = item.imageUrl || '';
-        // Ubah link view Google Drive menjadi link gambar langsung agar bisa dirender di tag <img>
+        // Ubah link view Google Drive menjadi link thumbnail agar bisa dirender
         if (finalUrl.includes('drive.google.com/file/d/')) {
           const fileId = finalUrl.match(/\/d\/(.+?)\//);
           if (fileId && fileId[1]) {
-            finalUrl = `https://drive.google.com/uc?export=view&id=${fileId[1]}`;
+            // Gunakan endpoint thumbnail yang lebih stabil untuk gambar Google Drive
+            finalUrl = `https://drive.google.com/thumbnail?id=${fileId[1]}&sz=w800`;
           }
         }
 
