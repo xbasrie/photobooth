@@ -93,21 +93,70 @@ function renderGallery() {
 
     sortedPhotos.forEach(photo => {
       const item = document.createElement('div');
-      item.className = 'masonry-item bg-white p-3 rounded-xl shadow-sm border border-brand-brown/10 flex flex-col gap-3 transition-transform hover:scale-[1.02] cursor-pointer';
+      item.className = 'masonry-item bg-white p-3 rounded-xl shadow-sm border border-brand-brown/10 flex flex-col gap-2 transition-transform hover:scale-[1.02]';
 
       item.innerHTML = `
         ${photo.imageUrl ? `<img src="${photo.imageUrl}" alt="Photo by ${photo.name}" onerror="this.style.display='none'" class="w-full rounded-lg object-cover bg-gray-100" loading="lazy" />` : ''}
         <div>
           <h3 class="font-serif font-bold text-sm text-brand-dark">${photo.name}</h3>
-          <p class="text-xs text-brand-dark/70 mt-1 italic">"${photo.wish}"</p>
+          <p class="text-xs text-brand-dark/70 mt-1 italic leading-relaxed">"${photo.wish}"</p>
         </div>
+        ${photo.imageUrl ? `
+        <div class="flex items-center gap-2 mt-2 pt-2 border-t border-brand-brown/10">
+          <button data-action="share" data-url="${photo.imageUrl}" data-name="${photo.name}" class="flex-1 text-xs py-1.5 flex items-center justify-center gap-1.5 bg-brand-brown/10 text-brand-brown rounded-lg hover:bg-brand-brown/20 active:scale-95 transition-all font-medium">
+            <i class="ph ph-share-network text-sm"></i> Share
+          </button>
+          <button data-action="download" data-url="${photo.imageUrl}" class="flex-1 text-xs py-1.5 flex items-center justify-center gap-1.5 bg-brand-brown text-white rounded-lg hover:bg-brand-brown/90 active:scale-95 transition-all font-medium">
+            <i class="ph ph-download-simple text-sm"></i> Download
+          </button>
+        </div>
+        ` : ''}
       `;
 
-      // Could add fullscreen view on click here
       galleryGrid.appendChild(item);
     });
   }
 }
+
+// Delegated Event Listener for Gallery Grid Buttons
+galleryGrid.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  
+  const action = btn.dataset.action;
+  const url = btn.dataset.url;
+  const name = btn.dataset.name;
+  
+  if (action === 'share') {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Asfiyah & Hasan Wedding',
+          text: `Momen seru dari ${name} di pernikahan Asfiyah & Hasan!`,
+          url: url
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
+      }
+    } else {
+      alert("Browser Anda tidak mendukung fitur berbagi langsung.");
+    }
+  } else if (action === 'download') {
+    // Jika format base64, kita bisa trigger force download
+    if (url.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Photobooth_${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // Jika URL external (Google Drive), download attribute tidak berfungsi karena CORS
+      // Solusi terbaik adalah membuka di tab baru
+      window.open(url, '_blank');
+    }
+  }
+});
 
 // --- Camera Logic ---
 async function startCamera() {
